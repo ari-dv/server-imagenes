@@ -18,7 +18,7 @@ const upload = multer({
 
 app.use('/images', express.static(uploadDir));
 
-app.post('/upload', (req, res) => {
+app.post('/upload-image', (req, res) => {
     upload(req, res, (err) => {
         if (err instanceof multer.MulterError) {
             if (err.code === 'LIMIT_FILE_SIZE') {
@@ -44,7 +44,6 @@ app.post('/upload', (req, res) => {
     });
 });
 
-// Ruta simple para verificar que el servidor vive
 app.get('/', (req, res) => res.send('Servidor de archivos activo.'));
 
 app.listen(PORT, () => {
