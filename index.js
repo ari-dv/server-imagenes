@@ -21,21 +21,48 @@ const storage = multer.diskStorage({
     }
 });
 
+const imageFilter = (req, file, cb) => {
+    const extensionesPermitidas = /\.(jpg|jpeg|png|webp)$/i;
+    if (extensionesPermitidas.test(file.originalname)) {
+        cb(null, true); 
+    } else {
+        cb(new Error('FORMATO_INVALIDO'), false);
+    }
+};
+
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }
+    limits: { fileSize: 5 * 1024 * 1024 }, 
+    fileFilter: imageFilter 
 }).single('image');
 
 app.use('/images', express.static(uploadDir));
 
-app.post('/upload-image', (req, res) => {
+const preventCpuSpike = (req, res, next) => {
+    const contentLength = parseInt(req.headers['content-length'], 10);
+    const limiteBytes = 5 * 1024 * 1024; 
+
+    if (contentLength && contentLength > limiteBytes) {
+        return res.status(413).json({ 
+            error: 'El archivo es demasiado grande. Máximo 5MB permitidos.' 
+        });
+    }
+    next();
+};
+
+
+app.post('/upload-image', preventCpuSpike, (req, res) => {
     upload(req, res, (err) => {
         if (err instanceof multer.MulterError) {
             if (err.code === 'LIMIT_FILE_SIZE') {
-                return res.status(400).json({ error: 'La imagen excede el límite de 5MB.' });
+                return res.status(413).json({ error: 'La imagen excede el límite de 5MB.' });
             }
             return res.status(400).json({ error: err.message });
-        } else if (err) {
+        } 
+        else if (err) {
+            if (err.message === 'FORMATO_INVALIDO') {
+                return res.status(415).json({ error: 'Solo se permiten subir imágenes (JPG, PNG, WEBP, etc).' });
+            }
             return res.status(500).json({ error: 'Error interno del servidor.' });
         }
 
@@ -57,5 +84,5 @@ app.post('/upload-image', (req, res) => {
 app.get('/', (req, res) => res.send('Servidor de archivos activo.'));
 
 app.listen(PORT, () => {
-    console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
