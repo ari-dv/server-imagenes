@@ -11,8 +11,18 @@ if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir)
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+        cb(null, 'img-' + Date.now() + ext);
+    }
+});
+
 const upload = multer({ 
-    dest: 'uploads/',
+    storage: storage,
     limits: { fileSize: 10 * 1024 * 1024 }
 }).single('image');
 
