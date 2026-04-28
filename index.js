@@ -3,8 +3,11 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+
 const app = express();
 const PORT = 3000;
+const cors = require('cors');
+app.use(cors());
 
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
