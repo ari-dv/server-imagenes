@@ -20,7 +20,9 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         const ext = path.extname(file.originalname);
-        cb(null, 'img-' + Date.now() + ext);
+        const nombreBase = path.basename(file.originalname, ext);
+        const nombreLimpio = nombreBase.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+        cb(null, nombreLimpio + '-' + Date.now() + ext);
     }
 });
 
