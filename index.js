@@ -86,3 +86,23 @@ app.get('/', (req, res) => res.send('Servidor de archivos activo.'));
 app.listen(PORT, () => {
     console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
+
+app.get('/list-images', (req, res) => {
+    fs.readdir(uploadDir, (err, files) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error al leer las imágenes.' });
+        }
+
+        const imagesList = files.map(file => {
+            return {
+                filename: file,
+                url: `${req.protocol}://${req.get('host')}/images/${file}`
+            };
+        });
+
+        res.status(200).json({
+            total: imagesList.length,
+            images: imagesList
+        });
+    });
+});
